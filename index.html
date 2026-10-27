@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Poker Night League Points Calculator</title>
+<style>
+  :root { color-scheme: light; --green:#174b3b; --green2:#21664f; --ink:#18231f; --muted:#61716a; --line:#dce5df; --bg:#f4f7f5; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:18px; background:var(--bg); color:var(--ink); font:16px/1.45 system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; }
+  .card { width:min(100%,520px); margin:0 auto; background:#fff; border:1px solid var(--line); border-radius:18px; overflow:hidden; box-shadow:0 8px 24px rgba(20,55,40,.08); }
+  header { background:var(--green); color:white; padding:22px 22px 19px; }
+  .eyebrow { margin:0 0 5px; font-size:12px; letter-spacing:.12em; text-transform:uppercase; opacity:.85; }
+  h1 { margin:0; font-size:clamp(22px,5vw,29px); line-height:1.15; }
+  .sub { margin:8px 0 0; font-size:14px; opacity:.9; }
+  main { padding:22px; }
+  .fixed { display:flex; align-items:center; justify-content:space-between; gap:12px; background:#eef6f0; border:1px solid #d5e8da; padding:12px 14px; border-radius:12px; margin-bottom:20px; }
+  .fixed span { color:var(--muted); font-size:14px; }
+  .fixed strong { color:var(--green); font-size:19px; }
+  label { display:block; font-weight:650; font-size:14px; margin:0 0 7px; }
+  .field { margin-bottom:17px; }
+  input { width:100%; border:1px solid #cbd8d0; border-radius:10px; padding:12px 13px; font:inherit; color:var(--ink); background:white; }
+  input:focus { outline:3px solid #c9e4d4; border-color:var(--green2); }
+  .hint { color:var(--muted); font-size:12px; margin-top:5px; }
+  button { width:100%; border:0; border-radius:11px; background:var(--green); color:white; font:700 16px/1.2 inherit; padding:14px 16px; cursor:pointer; }
+  button:hover { background:var(--green2); }
+  button:focus-visible { outline:3px solid #9acbb0; outline-offset:3px; }
+  .result { margin-top:19px; border-radius:14px; background:#f3f7f4; border:1px solid var(--line); text-align:center; padding:18px 14px; }
+  .result-label { color:var(--muted); font-size:13px; font-weight:650; text-transform:uppercase; letter-spacing:.08em; }
+  #points { color:var(--green); font-size:clamp(36px,10vw,48px); font-weight:800; line-height:1.15; margin:7px 0 4px; }
+  #status { min-height:20px; color:#9a3412; font-size:13px; margin-top:8px; }
+  .formula { margin:16px 0 0; color:var(--muted); font-size:12px; text-align:center; }
+  footer { padding:0 22px 19px; color:var(--muted); font-size:12px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="card">
+  <header>
+    <p class="eyebrow">Poker Night League</p>
+    <h1>Points Calculator</h1>
+    <p class="sub">Enter the game results to calculate league points.</p>
+  </header>
+  <main>
+    <div class="fixed"><span>Fixed buy-in</span><strong>$20.00</strong></div>
+    <form id="calc" novalidate>
+      <div class="field">
+        <label for="players">Total players</label>
+        <input id="players" name="players" type="number" min="1" step="1" placeholder="e.g. 18" required>
+      </div>
+      <div class="field">
+        <label for="experience">Player total experience</label>
+        <input id="experience" name="experience" type="number" min="0.000001" step="any" placeholder="Enter experience value" required>
+        <div class="hint">Must be greater than zero.</div>
+      </div>
+      <div class="field">
+        <label for="finish">Player finish position</label>
+        <input id="finish" name="finish" type="number" min="1" step="1" placeholder="e.g. 1 for first place" required>
+      </div>
+      <button type="submit">Calculate Points</button>
+      <div class="result" aria-live="polite">
+        <div class="result-label">Total points</div>
+        <div id="points">—</div>
+        <div id="status">Enter all three values, then calculate.</div>
+      </div>
+    </form>
+    <p class="formula">Scoring formula: √(((players × $20) × ($20 ÷ experience)) ÷ (finish + 1))</p>
+  </main>
+  <footer>Buy-in is fixed at $20. This calculator does not save or submit player results.</footer>
+</div>
+<script>
+(function () {
+  const form = document.getElementById('calc');
+  const playersEl = document.getElementById('players');
+  const experienceEl = document.getElementById('experience');
+  const finishEl = document.getElementById('finish');
+  const pointsEl = document.getElementById('points');
+  const statusEl = document.getElementById('status');
+
+  form.addEventListener('submit', function (event) {
+    event.preventDefault();
+    const players = Number(playersEl.value);
+    const experience = Number(experienceEl.value);
+    const finish = Number(finishEl.value);
+
+    if (!playersEl.value || !experienceEl.value || !finishEl.value ||
+        !Number.isInteger(players) || players < 1 ||
+        !Number.isFinite(experience) || experience <= 0 ||
+        !Number.isInteger(finish) || finish < 1 || finish > players) {
+      pointsEl.textContent = '—';
+      statusEl.textContent = 'Check your entries: players must be at least 1, experience greater than 0, and finish must be between 1 and total players.';
+      return;
+    }
+
+    // Original spreadsheet formula with D12 hard-coded to $20:
+    // SQRT(((D11*20)*(20/D13))/(D14+1))
+    const points = Math.sqrt(((players * 20) * (20 / experience)) / (finish + 1));
+    pointsEl.textContent = points.toFixed(2);
+    statusEl.textContent = 'Points calculated successfully.';
+  });
+})();
+</script>
+</body>
+</html>
